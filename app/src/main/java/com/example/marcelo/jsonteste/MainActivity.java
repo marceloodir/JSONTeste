@@ -9,8 +9,12 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -46,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
         TextView tv = (TextView) findViewById(R.id.saida);
 
         //getJson(uri);
-        sendJson("marcelo@gmail.com","123");
+        sendJson();
         //Map interno = (Map) retorno.get("address");
 
        //tv.setText(interno.keySet().toString() + interno.values().toString());
@@ -103,8 +107,8 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    protected void sendJson(final String email, final String pwd) {
-        final String URL = "http://validate.jsontest.com/";
+    protected void sendJson() {
+        final String URL = "http://192.168.1.107/servico/consultas.asmx/consultas";
         Thread t = new Thread() {
 
             public void run() {
@@ -112,15 +116,22 @@ public class MainActivity extends ActionBarActivity {
                 HttpClient client = new DefaultHttpClient();
                 HttpConnectionParams.setConnectionTimeout(client.getParams(), 10000); //Timeout Limit
                 HttpResponse response;
-                JSONObject json = new JSONObject();
+                //JSONObject json = new JSONObject();
 
                 try {
                     HttpPost post = new HttpPost(URL);
-                    json.put("email", email);
-                    json.put("password", pwd);
-                    ArrayList parameters = new ArrayList(2);
-                    parameters.add(new BasicNameValuePair("json",json.toString()));
-                    post.setEntity(new UrlEncodedFormEntity(parameters));
+                    ArrayList<Veiculo> veiculos = new ArrayList<>();
+                    veiculos.add(new Veiculo("MZL7790","904953505"));
+                    Gson gson =  new Gson();
+                    JsonElement element = gson.toJsonTree(veiculos, new TypeToken<ArrayList<Veiculo>>() {}.getType());
+                    JsonArray jsonArray = element.getAsJsonArray();
+
+                    //json.put("placa", "MZL7790");
+                    //json.put("renavam", "904953505");
+                    ArrayList<NameValuePair> parameters = new ArrayList<NameValuePair>(1);
+                    parameters.add(new BasicNameValuePair("entrada",jsonArray.toString()));
+                    UrlEncodedFormEntity entity = new UrlEncodedFormEntity(parameters);
+                    post.setEntity(entity);
 
                     //StringEntity se = new StringEntity( json.toString());
                     //se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
